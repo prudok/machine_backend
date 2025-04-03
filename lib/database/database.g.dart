@@ -22,16 +22,6 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
   late final GeneratedColumn<String> name = GeneratedColumn<String>(
       'name', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
-  static const VerificationMeta _widthMeta = const VerificationMeta('width');
-  @override
-  late final GeneratedColumn<double> width = GeneratedColumn<double>(
-      'width', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
-  static const VerificationMeta _heightMeta = const VerificationMeta('height');
-  @override
-  late final GeneratedColumn<double> height = GeneratedColumn<double>(
-      'height', aliasedName, false,
-      type: DriftSqlType.double, requiredDuringInsert: true);
   static const VerificationMeta _powerConsumptionMeta =
       const VerificationMeta('powerConsumption');
   @override
@@ -44,15 +34,29 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
       GeneratedColumn<String>('type', aliasedName, false,
               type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<MachineType>($MachinesTable.$convertertype);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumnWithTypeConverter<MachineStatus, String> status =
+      GeneratedColumn<String>('status', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: Constant('idle'))
+          .withConverter<MachineStatus>($MachinesTable.$converterstatus);
   static const VerificationMeta _descriptionMeta =
       const VerificationMeta('description');
   @override
   late final GeneratedColumn<String> description = GeneratedColumn<String>(
       'description', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _imageUrlMeta =
+      const VerificationMeta('imageUrl');
+  @override
+  late final GeneratedColumn<String> imageUrl = GeneratedColumn<String>(
+      'image_url', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, name, width, height, powerConsumption, type, description];
+      [id, name, powerConsumption, type, status, description, imageUrl];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -72,18 +76,6 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (data.containsKey('width')) {
-      context.handle(
-          _widthMeta, width.isAcceptableOrUnknown(data['width']!, _widthMeta));
-    } else if (isInserting) {
-      context.missing(_widthMeta);
-    }
-    if (data.containsKey('height')) {
-      context.handle(_heightMeta,
-          height.isAcceptableOrUnknown(data['height']!, _heightMeta));
-    } else if (isInserting) {
-      context.missing(_heightMeta);
-    }
     if (data.containsKey('power_consumption')) {
       context.handle(
           _powerConsumptionMeta,
@@ -93,11 +85,16 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
       context.missing(_powerConsumptionMeta);
     }
     context.handle(_typeMeta, const VerificationResult.success());
+    context.handle(_statusMeta, const VerificationResult.success());
     if (data.containsKey('description')) {
       context.handle(
           _descriptionMeta,
           description.isAcceptableOrUnknown(
               data['description']!, _descriptionMeta));
+    }
+    if (data.containsKey('image_url')) {
+      context.handle(_imageUrlMeta,
+          imageUrl.isAcceptableOrUnknown(data['image_url']!, _imageUrlMeta));
     }
     return context;
   }
@@ -112,16 +109,17 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       name: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
-      width: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}width'])!,
-      height: attachedDatabase.typeMapping
-          .read(DriftSqlType.double, data['${effectivePrefix}height'])!,
       powerConsumption: attachedDatabase.typeMapping.read(
           DriftSqlType.double, data['${effectivePrefix}power_consumption'])!,
       type: $MachinesTable.$convertertype.fromSql(attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}type'])!),
+      status: $MachinesTable.$converterstatus.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!),
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
+      imageUrl: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}image_url']),
     );
   }
 
@@ -132,37 +130,44 @@ class $MachinesTable extends Machines with TableInfo<$MachinesTable, Machine> {
 
   static JsonTypeConverter2<MachineType, String, String> $convertertype =
       const EnumNameConverter<MachineType>(MachineType.values);
+  static JsonTypeConverter2<MachineStatus, String, String> $converterstatus =
+      const EnumNameConverter<MachineStatus>(MachineStatus.values);
 }
 
 class Machine extends DataClass implements Insertable<Machine> {
   final int id;
   final String name;
-  final double width;
-  final double height;
   final double powerConsumption;
   final MachineType type;
+  final MachineStatus status;
   final String? description;
+  final String? imageUrl;
   const Machine(
       {required this.id,
       required this.name,
-      required this.width,
-      required this.height,
       required this.powerConsumption,
       required this.type,
-      this.description});
+      required this.status,
+      this.description,
+      this.imageUrl});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
-    map['width'] = Variable<double>(width);
-    map['height'] = Variable<double>(height);
     map['power_consumption'] = Variable<double>(powerConsumption);
     {
       map['type'] = Variable<String>($MachinesTable.$convertertype.toSql(type));
     }
+    {
+      map['status'] =
+          Variable<String>($MachinesTable.$converterstatus.toSql(status));
+    }
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || imageUrl != null) {
+      map['image_url'] = Variable<String>(imageUrl);
     }
     return map;
   }
@@ -171,13 +176,15 @@ class Machine extends DataClass implements Insertable<Machine> {
     return MachinesCompanion(
       id: Value(id),
       name: Value(name),
-      width: Value(width),
-      height: Value(height),
       powerConsumption: Value(powerConsumption),
       type: Value(type),
+      status: Value(status),
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      imageUrl: imageUrl == null && nullToAbsent
+          ? const Value.absent()
+          : Value(imageUrl),
     );
   }
 
@@ -187,12 +194,13 @@ class Machine extends DataClass implements Insertable<Machine> {
     return Machine(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
-      width: serializer.fromJson<double>(json['width']),
-      height: serializer.fromJson<double>(json['height']),
       powerConsumption: serializer.fromJson<double>(json['powerConsumption']),
       type: $MachinesTable.$convertertype
           .fromJson(serializer.fromJson<String>(json['type'])),
+      status: $MachinesTable.$converterstatus
+          .fromJson(serializer.fromJson<String>(json['status'])),
       description: serializer.fromJson<String?>(json['description']),
+      imageUrl: serializer.fromJson<String?>(json['imageUrl']),
     );
   }
   @override
@@ -201,143 +209,127 @@ class Machine extends DataClass implements Insertable<Machine> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
-      'width': serializer.toJson<double>(width),
-      'height': serializer.toJson<double>(height),
       'powerConsumption': serializer.toJson<double>(powerConsumption),
       'type':
           serializer.toJson<String>($MachinesTable.$convertertype.toJson(type)),
+      'status': serializer
+          .toJson<String>($MachinesTable.$converterstatus.toJson(status)),
       'description': serializer.toJson<String?>(description),
+      'imageUrl': serializer.toJson<String?>(imageUrl),
     };
   }
 
   Machine copyWith(
           {int? id,
           String? name,
-          double? width,
-          double? height,
           double? powerConsumption,
           MachineType? type,
-          Value<String?> description = const Value.absent()}) =>
+          MachineStatus? status,
+          Value<String?> description = const Value.absent(),
+          Value<String?> imageUrl = const Value.absent()}) =>
       Machine(
         id: id ?? this.id,
         name: name ?? this.name,
-        width: width ?? this.width,
-        height: height ?? this.height,
         powerConsumption: powerConsumption ?? this.powerConsumption,
         type: type ?? this.type,
+        status: status ?? this.status,
         description: description.present ? description.value : this.description,
+        imageUrl: imageUrl.present ? imageUrl.value : this.imageUrl,
       );
-  Machine copyWithCompanion(MachinesCompanion data) {
-    return Machine(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-      width: data.width.present ? data.width.value : this.width,
-      height: data.height.present ? data.height.value : this.height,
-      powerConsumption: data.powerConsumption.present
-          ? data.powerConsumption.value
-          : this.powerConsumption,
-      type: data.type.present ? data.type.value : this.type,
-      description:
-          data.description.present ? data.description.value : this.description,
-    );
-  }
-
   @override
   String toString() {
     return (StringBuffer('Machine(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('width: $width, ')
-          ..write('height: $height, ')
           ..write('powerConsumption: $powerConsumption, ')
           ..write('type: $type, ')
-          ..write('description: $description')
+          ..write('status: $status, ')
+          ..write('description: $description, ')
+          ..write('imageUrl: $imageUrl')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, name, width, height, powerConsumption, type, description);
+  int get hashCode => Object.hash(
+      id, name, powerConsumption, type, status, description, imageUrl);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Machine &&
           other.id == this.id &&
           other.name == this.name &&
-          other.width == this.width &&
-          other.height == this.height &&
           other.powerConsumption == this.powerConsumption &&
           other.type == this.type &&
-          other.description == this.description);
+          other.status == this.status &&
+          other.description == this.description &&
+          other.imageUrl == this.imageUrl);
 }
 
 class MachinesCompanion extends UpdateCompanion<Machine> {
   final Value<int> id;
   final Value<String> name;
-  final Value<double> width;
-  final Value<double> height;
   final Value<double> powerConsumption;
   final Value<MachineType> type;
+  final Value<MachineStatus> status;
   final Value<String?> description;
+  final Value<String?> imageUrl;
   const MachinesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
-    this.width = const Value.absent(),
-    this.height = const Value.absent(),
     this.powerConsumption = const Value.absent(),
     this.type = const Value.absent(),
+    this.status = const Value.absent(),
     this.description = const Value.absent(),
+    this.imageUrl = const Value.absent(),
   });
   MachinesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
-    required double width,
-    required double height,
     required double powerConsumption,
     required MachineType type,
+    this.status = const Value.absent(),
     this.description = const Value.absent(),
+    this.imageUrl = const Value.absent(),
   })  : name = Value(name),
-        width = Value(width),
-        height = Value(height),
         powerConsumption = Value(powerConsumption),
         type = Value(type);
   static Insertable<Machine> custom({
     Expression<int>? id,
     Expression<String>? name,
-    Expression<double>? width,
-    Expression<double>? height,
     Expression<double>? powerConsumption,
     Expression<String>? type,
+    Expression<String>? status,
     Expression<String>? description,
+    Expression<String>? imageUrl,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
-      if (width != null) 'width': width,
-      if (height != null) 'height': height,
       if (powerConsumption != null) 'power_consumption': powerConsumption,
       if (type != null) 'type': type,
+      if (status != null) 'status': status,
       if (description != null) 'description': description,
+      if (imageUrl != null) 'image_url': imageUrl,
     });
   }
 
   MachinesCompanion copyWith(
       {Value<int>? id,
       Value<String>? name,
-      Value<double>? width,
-      Value<double>? height,
       Value<double>? powerConsumption,
       Value<MachineType>? type,
-      Value<String?>? description}) {
+      Value<MachineStatus>? status,
+      Value<String?>? description,
+      Value<String?>? imageUrl}) {
     return MachinesCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
-      width: width ?? this.width,
-      height: height ?? this.height,
       powerConsumption: powerConsumption ?? this.powerConsumption,
       type: type ?? this.type,
+      status: status ?? this.status,
       description: description ?? this.description,
+      imageUrl: imageUrl ?? this.imageUrl,
     );
   }
 
@@ -350,12 +342,6 @@ class MachinesCompanion extends UpdateCompanion<Machine> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
-    if (width.present) {
-      map['width'] = Variable<double>(width.value);
-    }
-    if (height.present) {
-      map['height'] = Variable<double>(height.value);
-    }
     if (powerConsumption.present) {
       map['power_consumption'] = Variable<double>(powerConsumption.value);
     }
@@ -363,8 +349,15 @@ class MachinesCompanion extends UpdateCompanion<Machine> {
       map['type'] =
           Variable<String>($MachinesTable.$convertertype.toSql(type.value));
     }
+    if (status.present) {
+      map['status'] =
+          Variable<String>($MachinesTable.$converterstatus.toSql(status.value));
+    }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
+    }
+    if (imageUrl.present) {
+      map['image_url'] = Variable<String>(imageUrl.value);
     }
     return map;
   }
@@ -374,11 +367,11 @@ class MachinesCompanion extends UpdateCompanion<Machine> {
     return (StringBuffer('MachinesCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('width: $width, ')
-          ..write('height: $height, ')
           ..write('powerConsumption: $powerConsumption, ')
           ..write('type: $type, ')
-          ..write('description: $description')
+          ..write('status: $status, ')
+          ..write('description: $description, ')
+          ..write('imageUrl: $imageUrl')
           ..write(')'))
         .toString();
   }
@@ -386,7 +379,7 @@ class MachinesCompanion extends UpdateCompanion<Machine> {
 
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
-  $AppDatabaseManager get managers => $AppDatabaseManager(this);
+  _$AppDatabaseManager get managers => _$AppDatabaseManager(this);
   late final $MachinesTable machines = $MachinesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -395,121 +388,24 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   List<DatabaseSchemaEntity> get allSchemaEntities => [machines];
 }
 
-typedef $$MachinesTableCreateCompanionBuilder = MachinesCompanion Function({
+typedef $$MachinesTableInsertCompanionBuilder = MachinesCompanion Function({
   Value<int> id,
   required String name,
-  required double width,
-  required double height,
   required double powerConsumption,
   required MachineType type,
+  Value<MachineStatus> status,
   Value<String?> description,
+  Value<String?> imageUrl,
 });
 typedef $$MachinesTableUpdateCompanionBuilder = MachinesCompanion Function({
   Value<int> id,
   Value<String> name,
-  Value<double> width,
-  Value<double> height,
   Value<double> powerConsumption,
   Value<MachineType> type,
+  Value<MachineStatus> status,
   Value<String?> description,
+  Value<String?> imageUrl,
 });
-
-class $$MachinesTableFilterComposer
-    extends Composer<_$AppDatabase, $MachinesTable> {
-  $$MachinesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get width => $composableBuilder(
-      column: $table.width, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get height => $composableBuilder(
-      column: $table.height, builder: (column) => ColumnFilters(column));
-
-  ColumnFilters<double> get powerConsumption => $composableBuilder(
-      column: $table.powerConsumption,
-      builder: (column) => ColumnFilters(column));
-
-  ColumnWithTypeConverterFilters<MachineType, MachineType, String> get type =>
-      $composableBuilder(
-          column: $table.type,
-          builder: (column) => ColumnWithTypeConverterFilters(column));
-
-  ColumnFilters<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnFilters(column));
-}
-
-class $$MachinesTableOrderingComposer
-    extends Composer<_$AppDatabase, $MachinesTable> {
-  $$MachinesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-      column: $table.id, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get name => $composableBuilder(
-      column: $table.name, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get width => $composableBuilder(
-      column: $table.width, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get height => $composableBuilder(
-      column: $table.height, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<double> get powerConsumption => $composableBuilder(
-      column: $table.powerConsumption,
-      builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get type => $composableBuilder(
-      column: $table.type, builder: (column) => ColumnOrderings(column));
-
-  ColumnOrderings<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => ColumnOrderings(column));
-}
-
-class $$MachinesTableAnnotationComposer
-    extends Composer<_$AppDatabase, $MachinesTable> {
-  $$MachinesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<double> get width =>
-      $composableBuilder(column: $table.width, builder: (column) => column);
-
-  GeneratedColumn<double> get height =>
-      $composableBuilder(column: $table.height, builder: (column) => column);
-
-  GeneratedColumn<double> get powerConsumption => $composableBuilder(
-      column: $table.powerConsumption, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<MachineType, String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
-
-  GeneratedColumn<String> get description => $composableBuilder(
-      column: $table.description, builder: (column) => column);
-}
 
 class $$MachinesTableTableManager extends RootTableManager<
     _$AppDatabase,
@@ -517,81 +413,155 @@ class $$MachinesTableTableManager extends RootTableManager<
     Machine,
     $$MachinesTableFilterComposer,
     $$MachinesTableOrderingComposer,
-    $$MachinesTableAnnotationComposer,
-    $$MachinesTableCreateCompanionBuilder,
-    $$MachinesTableUpdateCompanionBuilder,
-    (Machine, BaseReferences<_$AppDatabase, $MachinesTable, Machine>),
-    Machine,
-    PrefetchHooks Function()> {
+    $$MachinesTableProcessedTableManager,
+    $$MachinesTableInsertCompanionBuilder,
+    $$MachinesTableUpdateCompanionBuilder> {
   $$MachinesTableTableManager(_$AppDatabase db, $MachinesTable table)
       : super(TableManagerState(
           db: db,
           table: table,
-          createFilteringComposer: () =>
-              $$MachinesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MachinesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MachinesTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
+          filteringComposer:
+              $$MachinesTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$MachinesTableOrderingComposer(ComposerState(db, table)),
+          getChildManagerBuilder: (p) =>
+              $$MachinesTableProcessedTableManager(p),
+          getUpdateCompanionBuilder: ({
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
-            Value<double> width = const Value.absent(),
-            Value<double> height = const Value.absent(),
             Value<double> powerConsumption = const Value.absent(),
             Value<MachineType> type = const Value.absent(),
+            Value<MachineStatus> status = const Value.absent(),
             Value<String?> description = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
           }) =>
               MachinesCompanion(
             id: id,
             name: name,
-            width: width,
-            height: height,
             powerConsumption: powerConsumption,
             type: type,
+            status: status,
             description: description,
+            imageUrl: imageUrl,
           ),
-          createCompanionCallback: ({
+          getInsertCompanionBuilder: ({
             Value<int> id = const Value.absent(),
             required String name,
-            required double width,
-            required double height,
             required double powerConsumption,
             required MachineType type,
+            Value<MachineStatus> status = const Value.absent(),
             Value<String?> description = const Value.absent(),
+            Value<String?> imageUrl = const Value.absent(),
           }) =>
               MachinesCompanion.insert(
             id: id,
             name: name,
-            width: width,
-            height: height,
             powerConsumption: powerConsumption,
             type: type,
+            status: status,
             description: description,
+            imageUrl: imageUrl,
           ),
-          withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
-              .toList(),
-          prefetchHooksCallback: null,
         ));
 }
 
-typedef $$MachinesTableProcessedTableManager = ProcessedTableManager<
+class $$MachinesTableProcessedTableManager extends ProcessedTableManager<
     _$AppDatabase,
     $MachinesTable,
     Machine,
     $$MachinesTableFilterComposer,
     $$MachinesTableOrderingComposer,
-    $$MachinesTableAnnotationComposer,
-    $$MachinesTableCreateCompanionBuilder,
-    $$MachinesTableUpdateCompanionBuilder,
-    (Machine, BaseReferences<_$AppDatabase, $MachinesTable, Machine>),
-    Machine,
-    PrefetchHooks Function()>;
+    $$MachinesTableProcessedTableManager,
+    $$MachinesTableInsertCompanionBuilder,
+    $$MachinesTableUpdateCompanionBuilder> {
+  $$MachinesTableProcessedTableManager(super.$state);
+}
 
-class $AppDatabaseManager {
+class $$MachinesTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $MachinesTable> {
+  $$MachinesTableFilterComposer(super.$state);
+  ColumnFilters<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get powerConsumption => $state.composableBuilder(
+      column: $state.table.powerConsumption,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<MachineType, MachineType, String> get type =>
+      $state.composableBuilder(
+          column: $state.table.type,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<MachineStatus, MachineStatus, String>
+      get status => $state.composableBuilder(
+          column: $state.table.status,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get description => $state.composableBuilder(
+      column: $state.table.description,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get imageUrl => $state.composableBuilder(
+      column: $state.table.imageUrl,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$MachinesTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $MachinesTable> {
+  $$MachinesTableOrderingComposer(super.$state);
+  ColumnOrderings<int> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get name => $state.composableBuilder(
+      column: $state.table.name,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get powerConsumption => $state.composableBuilder(
+      column: $state.table.powerConsumption,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get type => $state.composableBuilder(
+      column: $state.table.type,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get status => $state.composableBuilder(
+      column: $state.table.status,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get description => $state.composableBuilder(
+      column: $state.table.description,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get imageUrl => $state.composableBuilder(
+      column: $state.table.imageUrl,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+class _$AppDatabaseManager {
   final _$AppDatabase _db;
-  $AppDatabaseManager(this._db);
+  _$AppDatabaseManager(this._db);
   $$MachinesTableTableManager get machines =>
       $$MachinesTableTableManager(_db, _db.machines);
 }

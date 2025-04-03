@@ -5,7 +5,7 @@ import 'package:machine_backend/models/machine_type.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
 
-import 'database/database.dart';
+import '../database/database.dart';
 
 class MachineApi {
   final AppDatabase db;
@@ -30,8 +30,6 @@ class MachineApi {
 
         final machinesCompanion = MachinesCompanion.insert(
           name: data['name'],
-          width: data['width'],
-          height: data['height'],
           powerConsumption: data['powerConsumption'],
           type: MachineType.values.byName(data['type']),
           description: data['description'],
@@ -59,8 +57,6 @@ class MachineApi {
 
         final machinesCompanion = MachinesCompanion(
           name: Value(data['name']),
-          width: Value(data['width']),
-          height: Value(data['height']),
           powerConsumption: Value(data['powerConsumption']),
           type: Value(MachineType.values.byName(data['type'])),
           description: Value(
