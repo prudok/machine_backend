@@ -1,22 +1,22 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:machine_backend/database/database.dart';
 import 'package:machine_backend/models/machine_status.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketHandler {
   final AppDatabase db;
 
   WebSocketHandler(this.db);
 
-  final Map<String, List<WebSocket>> roomSockets = {};
+  final Map<String, List<WebSocketChannel>> roomSockets = {};
 
   Handler get handler => webSocketHandler(
-        (WebSocket socket) {
+        (WebSocketChannel socket) {
           String roomId = 'room_1';
           roomSockets.putIfAbsent(roomId, () => []).add(socket);
 
@@ -43,11 +43,11 @@ class WebSocketHandler {
                   .map((m) => {'id': m.id, 'name': m.name, 'status': m.status.name, 'imageUrl': m.imageUrl})
                   .toList());
 
-              roomSockets[roomId]?.forEach((s) => s.add(jsonData));
+              roomSockets[roomId]?.forEach((s) => s.sink.add(jsonData));
             },
           );
 
-          socket.done.then((_) => roomSockets[roomId]?.remove(socket));
+          // socket.sink.close().then((_) => roomSockets[roomId]?.remove(socket));
         },
       );
 }

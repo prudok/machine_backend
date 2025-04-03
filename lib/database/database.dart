@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -36,31 +37,31 @@ class AppDatabase extends _$AppDatabase {
           name: 'Резак 3000',
           powerConsumption: 15,
           type: MachineType.cutting,
-          imageUrl: Value('https://i.imgur.com/cutting.png'),
+          imageUrl: Value('https://robohash.org/${Random().nextInt(100)}'),
         ),
         MachinesCompanion.insert(
           name: 'Фрезер ABC',
           powerConsumption: 20,
           type: MachineType.milling,
-          imageUrl: Value('https://i.imgur.com/milling.png'),
+          imageUrl: Value('https://robohash.org/${Random().nextInt(100)}'),
         ),
         MachinesCompanion.insert(
           name: 'Дрель М-250',
           powerConsumption: 10,
           type: MachineType.drilling,
-          imageUrl: Value('https://i.imgur.com/drilling.png'),
+          imageUrl: Value('https://robohash.org/${Random().nextInt(100)}'),
         ),
         MachinesCompanion.insert(
           name: 'Полировщик SoftPolish',
           powerConsumption: 8,
           type: MachineType.polishing,
-          imageUrl: Value('https://i.imgur.com/polishing.png'),
+          imageUrl: Value('https://robohash.org/${Random().nextInt(100)}'),
         ),
         MachinesCompanion.insert(
           name: 'Omni-Tool',
           powerConsumption: 22,
           type: MachineType.other,
-          imageUrl: Value('https://i.imgur.com/other.png'),
+          imageUrl: Value('https://robohash.org/${Random().nextInt(100)}'),
         ),
       ]);
     });
