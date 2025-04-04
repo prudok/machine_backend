@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:machine_backend/handlers/websocket_handler.dart';
 import 'package:machine_backend/models/machine_type.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -15,24 +16,30 @@ class MachineApi {
   Handler get handler {
     final router = Router();
 
-    // Получение всех станков (GET)
     router.get('/machines', (Request request) async {
       final machines = await db.select(db.machines).get();
       return Response.ok(jsonEncode(machines));
     });
 
-    // Добавление оборудования (POST)
     router.post(
       '/machines',
       (Request request) async {
         final body = await request.readAsString();
         final data = jsonDecode(body);
 
+        late final MachineType type;
+        try {
+          type = MachineType.values.byName(data['type']);
+        } catch (_) {
+          type = MachineType.other;
+        }
+
         final machinesCompanion = MachinesCompanion.insert(
           name: data['name'],
           powerConsumption: data['powerConsumption'],
-          type: MachineType.values.byName(data['type']),
-          description: data['description'],
+          type: type,
+          description: Value(data['description']),
+          imageUrl: Value(data['imageUrl']),
         );
         await db.into(db.machines).insert(machinesCompanion);
 
@@ -40,7 +47,6 @@ class MachineApi {
       },
     );
 
-    // Удаление оборудования по id (DELETE)
     router.delete('/machines/<id|[0-9]+>', (Request request, String id) async {
       final machineId = int.parse(id);
 
@@ -48,7 +54,6 @@ class MachineApi {
       return deleted > 0 ? Response.ok('Deleted successfully') : Response.notFound('Machine not found');
     });
 
-    // Редактирование оборудования (PUT)
     router.put(
       '/machines/<id|[0-9]+>',
       (Request request, String id) async {
@@ -68,6 +73,25 @@ class MachineApi {
         return updated ? Response.ok('Updated successfully') : Response.notFound('Machine not found');
       },
     );
+
+    router.post('/machines', (Request request) async {
+      final body = await request.readAsString();
+      final data = jsonDecode(body);
+      final machinesCompanion = MachinesCompanion.insert(
+        name: data['name'],
+        powerConsumption: data['powerConsumption'],
+        type: MachineType.values.byName(data['type']),
+        description: data['description'],
+        imageUrl: Value(data['imageUrl']),
+      );
+
+      await db.into(db.machines).insert(machinesCompanion);
+
+      final wsHandler = WebSocketHandler(db);
+      await wsHandler.broadcastMachines('room_1');
+
+      return Response.ok('Machine added and broadcasted');
+    });
 
     return router;
   }
